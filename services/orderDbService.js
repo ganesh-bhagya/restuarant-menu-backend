@@ -35,7 +35,7 @@ const getLatestOrderCode = () => {
 };
 
 
-const updateOrder = async (idOrder, Start_Time, End_Time, Expected_Duration)=>{
+const updateOrder = (idOrder, Start_Time, End_Time, Expected_Duration)=>{
     const sql=`UPDATE orders SET Start_Time = ? ,End_Time = ? ,Expected_Duration= ? WHERE idOrder = ?`;
     return new Promise((resolve,reject)=>{
         db.query(sql,[Start_Time, End_Time, Expected_Duration,idOrder],(err,results)=>{
@@ -49,8 +49,53 @@ const updateOrder = async (idOrder, Start_Time, End_Time, Expected_Duration)=>{
 
 }
 
+const getAllPendingOrders = () =>{
+  const sql=`SELECT * FROM orders WHERE Status = ? ORDER BY idOrder ASC`;
+  return new Promise((resolve,reject)=>{
+    db.query(sql,[0],(err,results)=>{
+      if(err){
+        reject(err);
+      }else{
+        resolve(results);
+      }
+    })
+  })
+
+}
+
+const getAllCompletedOrders = () =>{
+  const sql=`SELECT * FROM orders WHERE Status = ? ORDER BY idOrder ASC`;
+  return new Promise((resolve,reject)=>{
+    db.query(sql,[1],(err,results)=>{
+      if(err){
+        reject(err);
+      }else{
+        resolve(results);
+      }
+    })
+  })
+
+}
+
+const updateOrderStatus = (idOrder)=>{
+  const sql=`UPDATE orders SET Status = CASE WHEN Status = 1 THEN 0 ELSE 1 END WHERE idOrder = ?`;
+  return new Promise((resolve,reject)=>{
+    db.query(sql,[idOrder],(err,results)=>{
+      if(err){
+        reject(err);
+      }else{
+        resolve(results);
+      }
+    })
+  })
+
+}
+
 module.exports = {
   addOrder,
   getLatestOrderCode,
-  updateOrder
+  updateOrder,
+  getAllPendingOrders,
+  getAllCompletedOrders,
+  updateOrderStatus
 };
