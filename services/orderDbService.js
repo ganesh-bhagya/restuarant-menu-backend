@@ -91,17 +91,30 @@ const updateOrderStatus = (idOrder)=>{
 
 }
 
-const getOrderByID=(idOrder)=>{
-  const sql=`SELECT * FROM orders WHERE idOrder = ?`;
-  return new Promise((resolve,reject)=>{
-    db.query(sql,[idOrder],(err,results)=>{
-      if(err){
+const getOrderByID = (idOrder) => {
+  const sql = `
+    SELECT o.*, p.productID, p.Name, p.Description, p.File_Path, p.Duration AS ProductDuration,
+           ohp.Instructions, ohp.Duration AS ItemDuration, ohp.Quantity
+    FROM orders o
+    INNER JOIN order_has_products ohp ON o.idOrder = ohp.idOrder
+    INNER JOIN products p ON ohp.Product_Id = p.productID
+    WHERE o.idOrder = ?;
+  `;
+
+  return new Promise((resolve, reject) => {
+    db.query(sql, [idOrder], (err, results) => {
+      if (err) {
         reject(err);
-      }else{
-        resolve(results);
+      } else {
+        // Map through results to append the URL to each
+        const enhancedResults = results.map(result => ({
+          ...result,
+          File_URL: `http://localhost:8000/upload-products/${result.File_Path}`
+        }));
+        resolve(enhancedResults);
       }
-    })
-  })
+    });
+  });
 }
 
 module.exports = {
