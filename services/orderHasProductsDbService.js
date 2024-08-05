@@ -48,21 +48,29 @@ const updateOrderHasProduct = (
 };
 
 
+const getOrderHasProductsById = (idOrder) => {
 
-const getOrderHasProductsById = (idOrder) =>{
-
-  const sql=`SELECT * FROM order_has_products WHERE idOrder = ?`;
-  return new Promise((resolve,reject)=>{
-    db.query(sql,[idOrder],(err,results)=>{
-      if(err){
+  const sql = `
+    SELECT ohp.*, p.Name, p.Description, p.File_Path
+    FROM order_has_products ohp
+    JOIN products p ON ohp.Product_Id = p.productID
+    WHERE ohp.idOrder = ?;
+  `;
+  return new Promise((resolve, reject) => {
+    db.query(sql, [idOrder], (err, results) => {
+      if (err) {
         reject(err);
-      }else{
-        resolve(results);
+      } else {
+        const enhancedResults = results.map(result => ({
+          ...result,
+          File_URL: `http://localhost:8000/upload-products/${result.File_Path}`
+        }));
+        resolve(enhancedResults);
       }
-    })
-  })
-
+    });
+  });
 }
+
 
 
 const getProductListById = (idOrder) =>{
