@@ -77,7 +77,82 @@ const updateOrder = async (req, res) => {
   }
 };
 
+
+const getAllPendingOrders = async (req, res) => {
+  try {
+    let data = [];
+    const results = await orderDbService.getAllPendingOrders();
+    await Promise.all(
+      results.map(async (order) => {
+        const productList = await orderHasProductsDbService.getOrderHasProductsById(order.idOrder);
+        console.log("The product list for order ID", order.idOrder, "is:", productList);
+        order.product_list = productList;
+        data.push(order);
+      })
+    );
+
+    // Return the complete data array
+    res.status(200).json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Something went wrong when fetching pending orders!" });
+  }
+}
+
+const getAllCompletedOrders = async (req, res) => {
+  try {
+    let data = [];
+    const results = await orderDbService.getAllCompletedOrders();
+    await Promise.all(
+      results.map(async (order) => {
+        const productList = await orderHasProductsDbService.getOrderHasProductsById(order.idOrder);
+        console.log("The product list for order ID", order.idOrder, "is:", productList);
+        order.product_list = productList;
+        data.push(order);
+      })
+    );
+
+    // Return the complete data array
+    res.status(200).json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Something went wrong when fetching pending orders!" });
+  }
+}
+
+const getLatestOrderCode = async(req,res) =>{
+  try{
+    const code = await orderDbService.getLatestOrderCode();
+    res.status(201).json({"the code : ":code});
+
+
+  }catch(err){
+    console.error(err);
+    res.status(500).json({ message: "Something went wrong!" });
+  }
+
+}
+
+
+const updateOrderStatus=async(req,res)=>{
+  try{
+    const {idOrder}= req.params;
+    const result = await orderDbService.updateOrderStatus(idOrder);
+    res.status(200).json({message:"Status updated!"});
+
+  }catch(err){
+    console.error(err);
+    res.status(500).json({ message: "Something went wrong when updating the status!" });
+  }
+}
+
+
+
 module.exports = {
   addOrder,
   updateOrder,
+  getAllPendingOrders,
+  getAllCompletedOrders,
+  getLatestOrderCode,
+  updateOrderStatus
 };

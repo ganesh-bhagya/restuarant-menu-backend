@@ -4,6 +4,8 @@ const orderController = require("../controllers/orderController");
 
 router.post("/",orderController.addOrder);
 router.put("/:idOrder",orderController.updateOrder);
-
-
+router.get("/get-all-pending-orders",orderController.getAllPendingOrders);
+router.get("/get-all-completed-orders",orderController.getAllCompletedOrders);
+router.get("/get-latest-order-code",orderController.getLatestOrderCode);
+router.put("/update-order-status/:idOrder",orderController.updateOrderStatus);
 module.exports=router;
