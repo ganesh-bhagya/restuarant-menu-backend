@@ -91,11 +91,25 @@ const updateOrderStatus = (idOrder)=>{
 
 }
 
+const getOrderByID=(idOrder)=>{
+  const sql=`SELECT * FROM orders WHERE idOrder = ?`;
+  return new Promise((resolve,reject)=>{
+    db.query(sql,[idOrder],(err,results)=>{
+      if(err){
+        reject(err);
+      }else{
+        resolve(results);
+      }
+    })
+  })
+}
+
 module.exports = {
   addOrder,
   getLatestOrderCode,
   updateOrder,
   getAllPendingOrders,
   getAllCompletedOrders,
-  updateOrderStatus
+  updateOrderStatus,
+  getOrderByID
 };
