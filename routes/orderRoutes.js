@@ -8,4 +8,5 @@ router.get("/get-all-pending-orders",orderController.getAllPendingOrders);
 router.get("/get-all-completed-orders",orderController.getAllCompletedOrders);
 router.get("/get-latest-order-code",orderController.getLatestOrderCode);
 router.put("/update-order-status/:idOrder",orderController.updateOrderStatus);
+router.get("/get-order-by-id/:idOrder",orderController.getOrderByID);
 module.exports=router;

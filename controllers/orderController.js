@@ -147,6 +147,32 @@ const updateOrderStatus=async(req,res)=>{
 }
 
 
+const getOrderByID = async (req, res) => {
+  try {
+    let data = [];
+    const {idOrder}= req.params;
+
+    const results = await orderDbService.getOrderByID(idOrder);
+    
+    
+    await Promise.all(
+      results.map(async (order) => {
+        const productList = await orderHasProductsDbService.getOrderHasProductsById(order.idOrder);
+        console.log("The product list for order ID", order.idOrder, "is:", productList);
+        order.product_list = productList;
+        data.push(order);
+      })
+    )
+
+
+   
+    res.status(200).json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Something went wrong when fetching pending orders!" });
+  }
+}
+
 
 module.exports = {
   addOrder,
@@ -154,5 +180,6 @@ module.exports = {
   getAllPendingOrders,
   getAllCompletedOrders,
   getLatestOrderCode,
-  updateOrderStatus
+  updateOrderStatus,
+  getOrderByID
 };

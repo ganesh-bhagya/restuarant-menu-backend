@@ -63,8 +63,24 @@ const getOrderHasProductsById = (idOrder) =>{
   })
 
 }
+
+
+const getProductListById = (idOrder) =>{
+  const sql=`SELECT * FROM order_has_products WHERE idOrder = ?`;
+  return new Promise((resolve,reject)=>{
+    db.query(sql,[idOrder],(err,results)=>{
+      if(err){
+        reject(err);
+      }else{
+        resolve(results);
+      }
+    })
+  })
+
+}
 module.exports = {
   addOrderHasProduct,
   updateOrderHasProduct,
-  getOrderHasProductsById
+  getOrderHasProductsById,
+  getProductListById
 };
