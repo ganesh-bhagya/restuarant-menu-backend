@@ -1,5 +1,6 @@
 const orderDbService = require("../services/orderDbService");
 const orderHasProductsDbService = require("../services/orderHasProductsDbService");
+
 const addOrder = async (req, res) => {
   try {
     const { product_list } = req.body;
@@ -9,7 +10,6 @@ const addOrder = async (req, res) => {
     }, 0);
     const End_Time = new Date(Start_Time.getTime() + Expected_Duration * 60000);
     const Order_Code = await orderDbService.getLatestOrderCode();
-    console.log("The order code is : " + Order_Code);
     const add_result = await orderDbService.addOrder(
       Order_Code,
       Start_Time,
@@ -17,7 +17,6 @@ const addOrder = async (req, res) => {
       Expected_Duration
     );
     const insertedID = add_result.insertId;
-    console.log("The inserted id is ", insertedID);
     const itemPromises = product_list.map((product) => {
       return orderHasProductsDbService.addOrderHasProduct(
         insertedID,
@@ -28,14 +27,31 @@ const addOrder = async (req, res) => {
       );
     });
     await Promise.all(itemPromises);
+
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("orderAdded", {
+        idOrder: insertedID,
+        Order_Code,
+        Start_Time,
+        End_Time,
+        Expected_Duration,
+        product_list,
+      });
+    } else {
+      console.error("WebSocket server instance 'io' is not found");
+    }
+
     res.status(201).json({ message: "Order adding completed!" });
   } catch (err) {
     console.error(err);
     res
       .status(401)
-      .json({ message: "Somthing went Wrong when adding an order!" });
+      .json({ message: "Something went wrong when adding an order!" });
   }
 };
+
+// Similarly update other methods if needed.
 
 const updateOrder = async (req, res) => {
   try {
@@ -68,15 +84,23 @@ const updateOrder = async (req, res) => {
     });
     await Promise.all(itemUpdates);
 
+    const io = req.app.get("io");
+    io.emit("orderUpdated", {
+      idOrder,
+      Start_Time,
+      End_Time,
+      Expected_Duration,
+      product_list,
+    });
+
     res.status(200).json({ message: "Order updated successfully!" });
   } catch (err) {
     console.error(err);
     res
       .status(401)
-      .json({ message: "Somthing went Wrong when updating the order!" });
+      .json({ message: "Something went wrong when updating the order!" });
   }
 };
-
 
 const getAllPendingOrders = async (req, res) => {
   try {
@@ -84,20 +108,23 @@ const getAllPendingOrders = async (req, res) => {
     const results = await orderDbService.getAllPendingOrders();
     await Promise.all(
       results.map(async (order) => {
-        const productList = await orderHasProductsDbService.getOrderHasProductsById(order.idOrder);
-        console.log("The product list for order ID", order.idOrder, "is:", productList);
+        const productList =
+          await orderHasProductsDbService.getOrderHasProductsById(
+            order.idOrder
+          );
         order.product_list = productList;
         data.push(order);
       })
     );
 
-    // Return the complete data array
     res.status(200).json(data);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Something went wrong when fetching pending orders!" });
+    res
+      .status(500)
+      .json({ message: "Something went wrong when fetching pending orders!" });
   }
-}
+};
 
 const getAllCompletedOrders = async (req, res) => {
   try {
@@ -105,74 +132,77 @@ const getAllCompletedOrders = async (req, res) => {
     const results = await orderDbService.getAllCompletedOrders();
     await Promise.all(
       results.map(async (order) => {
-        const productList = await orderHasProductsDbService.getOrderHasProductsById(order.idOrder);
-        console.log("The product list for order ID", order.idOrder, "is:", productList);
+        const productList =
+          await orderHasProductsDbService.getOrderHasProductsById(
+            order.idOrder
+          );
         order.product_list = productList;
         data.push(order);
       })
     );
 
-    // Return the complete data array
     res.status(200).json(data);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Something went wrong when fetching pending orders!" });
+    res.status(500).json({
+      message: "Something went wrong when fetching completed orders!",
+    });
   }
-}
+};
 
-const getLatestOrderCode = async(req,res) =>{
-  try{
+const getLatestOrderCode = async (req, res) => {
+  try {
     const code = await orderDbService.getLatestOrderCode();
-    res.status(201).json({"the code : ":code});
-
-
-  }catch(err){
+    res.status(201).json({ "the code : ": code });
+  } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Something went wrong!" });
   }
+};
 
-}
-
-
-const updateOrderStatus=async(req,res)=>{
-  try{
-    const {idOrder}= req.params;
+const updateOrderStatus = async (req, res) => {
+  try {
+    const { idOrder } = req.params;
     const result = await orderDbService.updateOrderStatus(idOrder);
-    res.status(200).json({message:"Status updated!"});
 
-  }catch(err){
+    const io = req.app.get("io");
+    io.emit("orderStatusUpdated", { idOrder });
+
+    res.status(200).json({ message: "Status updated!" });
+  } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Something went wrong when updating the status!" });
+    res
+      .status(500)
+      .json({ message: "Something went wrong when updating the status!" });
   }
-}
-
+};
 
 const getOrderByID = async (req, res) => {
   try {
     let data = [];
-    const {idOrder}= req.params;
+    const { idOrder } = req.params;
 
     const results = await orderDbService.getOrderByID(idOrder);
-    
-    
+
     await Promise.all(
       results.map(async (order) => {
-        const productList = await orderHasProductsDbService.getOrderHasProductsById(order.idOrder);
-        console.log("The product list for order ID", order.idOrder, "is:", productList);
+        const productList =
+          await orderHasProductsDbService.getOrderHasProductsById(
+            order.idOrder
+          );
         order.product_list = productList;
         data.push(order);
       })
-    )
+    );
 
-
-   
     res.status(200).json(data);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Something went wrong when fetching pending orders!" });
+    res
+      .status(500)
+      .json({ message: "Something went wrong when fetching the order!" });
   }
-}
-
+};
 
 module.exports = {
   addOrder,
@@ -181,5 +211,5 @@ module.exports = {
   getAllCompletedOrders,
   getLatestOrderCode,
   updateOrderStatus,
-  getOrderByID
+  getOrderByID,
 };

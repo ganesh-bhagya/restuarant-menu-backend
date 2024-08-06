@@ -34,62 +34,61 @@ const getLatestOrderCode = () => {
   });
 };
 
+const updateOrder = (idOrder, Start_Time, End_Time, Expected_Duration) => {
+  const sql = `UPDATE orders SET Start_Time = ? ,End_Time = ? ,Expected_Duration= ? WHERE idOrder = ?`;
+  return new Promise((resolve, reject) => {
+    db.query(
+      sql,
+      [Start_Time, End_Time, Expected_Duration, idOrder],
+      (err, results) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(results);
+        }
+      }
+    );
+  });
+};
 
-const updateOrder = (idOrder, Start_Time, End_Time, Expected_Duration)=>{
-    const sql=`UPDATE orders SET Start_Time = ? ,End_Time = ? ,Expected_Duration= ? WHERE idOrder = ?`;
-    return new Promise((resolve,reject)=>{
-        db.query(sql,[Start_Time, End_Time, Expected_Duration,idOrder],(err,results)=>{
-            if(err){
-                reject(err);
-            }else{
-                resolve(results);
-            }
-        })
-    })
-
-}
-
-const getAllPendingOrders = () =>{
-  const sql=`SELECT * FROM orders WHERE Status = ? ORDER BY idOrder ASC`;
-  return new Promise((resolve,reject)=>{
-    db.query(sql,[0],(err,results)=>{
-      if(err){
+const getAllPendingOrders = () => {
+  const sql = `SELECT * FROM orders WHERE Status = ? ORDER BY idOrder ASC`;
+  return new Promise((resolve, reject) => {
+    db.query(sql, [0], (err, results) => {
+      if (err) {
         reject(err);
-      }else{
+      } else {
         resolve(results);
       }
-    })
-  })
+    });
+  });
+};
 
-}
-
-const getAllCompletedOrders = () =>{
-  const sql=`SELECT * FROM orders WHERE Status = ? ORDER BY idOrder ASC`;
-  return new Promise((resolve,reject)=>{
-    db.query(sql,[1],(err,results)=>{
-      if(err){
+const getAllCompletedOrders = () => {
+  const sql = `SELECT * FROM orders WHERE Status = ? ORDER BY idOrder ASC`;
+  return new Promise((resolve, reject) => {
+    db.query(sql, [1], (err, results) => {
+      if (err) {
         reject(err);
-      }else{
+      } else {
         resolve(results);
       }
-    })
-  })
+    });
+  });
+};
 
-}
-
-const updateOrderStatus = (idOrder)=>{
-  const sql=`UPDATE orders SET Status = CASE WHEN Status = 1 THEN 0 ELSE 1 END WHERE idOrder = ?`;
-  return new Promise((resolve,reject)=>{
-    db.query(sql,[idOrder],(err,results)=>{
-      if(err){
+const updateOrderStatus = (idOrder) => {
+  const sql = `UPDATE orders SET Status = CASE WHEN Status = 1 THEN 0 ELSE 1 END WHERE idOrder = ?`;
+  return new Promise((resolve, reject) => {
+    db.query(sql, [idOrder], (err, results) => {
+      if (err) {
         reject(err);
-      }else{
+      } else {
         resolve(results);
       }
-    })
-  })
-
-}
+    });
+  });
+};
 
 const getOrderByID = (idOrder) => {
   const sql = `
@@ -105,7 +104,7 @@ const getOrderByID = (idOrder) => {
       }
     });
   });
-}
+};
 
 module.exports = {
   addOrder,
@@ -114,5 +113,5 @@ module.exports = {
   getAllPendingOrders,
   getAllCompletedOrders,
   updateOrderStatus,
-  getOrderByID
+  getOrderByID,
 };

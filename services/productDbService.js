@@ -27,7 +27,6 @@ const getAllProducts = () => {
             ? `http://localhost:8000/upload-products/${result.File_Path}`
             : null,
         }));
-        console.log(transformedResults);
         resolve(transformedResults);
       }
     });
