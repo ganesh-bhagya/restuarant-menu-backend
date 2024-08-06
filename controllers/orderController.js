@@ -165,9 +165,6 @@ const updateOrderStatus = async (req, res) => {
     const { idOrder } = req.params;
     const result = await orderDbService.updateOrderStatus(idOrder);
 
-    const io = req.app.get("io");
-    io.emit("orderStatusUpdated", { idOrder });
-
     res.status(200).json({ message: "Status updated!" });
   } catch (err) {
     console.error(err);

@@ -26,6 +26,7 @@ const getLatestOrderCode = () => {
       } else {
         if (results.length > 0) {
           resolve(results[0].Order_Code + 1);
+          console.log(results[0].Order_Code);
         } else {
           resolve("001");
         }

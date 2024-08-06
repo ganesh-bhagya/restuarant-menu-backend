@@ -31,7 +31,6 @@ const updateOrderHasProduct = (
   Quantity
 ) => {
   const sql = `UPDATE order_has_products SET Product_Id=?,Instructions=?,Duration=?,Quantity=? WHERE idOrder=? `;
-  console.log("Duration is : ",Duration);
   return new Promise((resolve, reject) => {
     db.query(
       sql,
@@ -47,9 +46,7 @@ const updateOrderHasProduct = (
   });
 };
 
-
 const getOrderHasProductsById = (idOrder) => {
-
   const sql = `
     SELECT ohp.*, p.Name, p.Description, p.File_Path
     FROM order_has_products ohp
@@ -61,34 +58,31 @@ const getOrderHasProductsById = (idOrder) => {
       if (err) {
         reject(err);
       } else {
-        const enhancedResults = results.map(result => ({
+        const enhancedResults = results.map((result) => ({
           ...result,
-          File_URL: `http://localhost:8000/upload-products/${result.File_Path}`
+          File_URL: `http://localhost:8000/upload-products/${result.File_Path}`,
         }));
         resolve(enhancedResults);
       }
     });
   });
-}
+};
 
-
-
-const getProductListById = (idOrder) =>{
-  const sql=`SELECT * FROM order_has_products WHERE idOrder = ?`;
-  return new Promise((resolve,reject)=>{
-    db.query(sql,[idOrder],(err,results)=>{
-      if(err){
+const getProductListById = (idOrder) => {
+  const sql = `SELECT * FROM order_has_products WHERE idOrder = ?`;
+  return new Promise((resolve, reject) => {
+    db.query(sql, [idOrder], (err, results) => {
+      if (err) {
         reject(err);
-      }else{
+      } else {
         resolve(results);
       }
-    })
-  })
-
-}
+    });
+  });
+};
 module.exports = {
   addOrderHasProduct,
   updateOrderHasProduct,
   getOrderHasProductsById,
-  getProductListById
+  getProductListById,
 };
