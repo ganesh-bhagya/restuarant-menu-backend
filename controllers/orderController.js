@@ -1,6 +1,28 @@
 const orderDbService = require("../services/orderDbService");
 const orderHasProductsDbService = require("../services/orderHasProductsDbService");
 
+const getCurrentTime = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  const seconds = String(now.getSeconds()).padStart(2, "0");
+  const milliseconds = String(now.getMilliseconds()).padStart(3, "0");
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
+};
+
+const getCurrentDate = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
 const addOrder = async (req, res) => {
   try {
     const { product_list } = req.body;
@@ -12,6 +34,7 @@ const addOrder = async (req, res) => {
     const Order_Code = await orderDbService.getLatestOrderCode();
     const add_result = await orderDbService.addOrder(
       Order_Code,
+      getCurrentDate(),
       Start_Time,
       End_Time,
       Expected_Duration
@@ -36,7 +59,7 @@ const addOrder = async (req, res) => {
         Start_Time,
         End_Time,
         Expected_Duration,
-        product_list,
+        product_list
       });
     } else {
       console.error("WebSocket server instance 'io' is not found");
@@ -90,7 +113,7 @@ const updateOrder = async (req, res) => {
       Start_Time,
       End_Time,
       Expected_Duration,
-      product_list,
+      product_list
     });
 
     res.status(200).json({ message: "Order updated successfully!" });
@@ -106,6 +129,53 @@ const getAllPendingOrders = async (req, res) => {
   try {
     let data = [];
     const results = await orderDbService.getAllPendingOrders();
+    await Promise.all(
+      results.map(async (order) => {
+        const productList =
+          await orderHasProductsDbService.getOrderHasProductsById(
+            order.idOrder
+          );
+        order.product_list = productList;
+        data.push(order);
+      })
+    );
+
+    res.status(200).json(data);
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ message: "Something went wrong when fetching pending orders!" });
+  }
+};
+const getAllOrders = async (req, res) => {
+  try {
+    let data = [];
+    const results = await orderDbService.getAllOrders();
+    await Promise.all(
+      results.map(async (order) => {
+        const productList =
+          await orderHasProductsDbService.getOrderHasProductsById(
+            order.idOrder
+          );
+        order.product_list = productList;
+        data.push(order);
+      })
+    );
+
+    res.status(200).json(data);
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ message: "Something went wrong when fetching pending orders!" });
+  }
+};
+const getOrdersByDate = async (req, res) => {
+  try {
+    const { Date } = req.params;
+    let data = [];
+    const results = await orderDbService.getOrdersByDate(Date);
     await Promise.all(
       results.map(async (order) => {
         const productList =
@@ -145,7 +215,7 @@ const getAllCompletedOrders = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({
-      message: "Something went wrong when fetching completed orders!",
+      message: "Something went wrong when fetching completed orders!"
     });
   }
 };
@@ -163,7 +233,12 @@ const getLatestOrderCode = async (req, res) => {
 const updateOrderStatus = async (req, res) => {
   try {
     const { idOrder } = req.params;
-    const result = await orderDbService.updateOrderStatus(idOrder);
+    const { Status } = req.body;
+    const result = await orderDbService.updateOrderStatus(idOrder, Status);
+
+    if (Status === 2) {
+      await orderDbService.updateOrderEndTime(idOrder, getCurrentTime());
+    }
 
     res.status(200).json({ message: "Status updated!" });
   } catch (err) {
@@ -209,4 +284,6 @@ module.exports = {
   getLatestOrderCode,
   updateOrderStatus,
   getOrderByID,
+  getAllOrders,
+  getOrdersByDate
 };

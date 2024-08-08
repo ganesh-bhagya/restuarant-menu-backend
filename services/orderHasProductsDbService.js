@@ -60,7 +60,7 @@ const getOrderHasProductsById = (idOrder) => {
       } else {
         const enhancedResults = results.map((result) => ({
           ...result,
-          File_URL: `http://localhost:8000/upload-products/${result.File_Path}`,
+          File_URL: `https://www.dnbeveragebackend.asipiya.lk/upload-products/${result.File_Path}`,
         }));
         resolve(enhancedResults);
       }

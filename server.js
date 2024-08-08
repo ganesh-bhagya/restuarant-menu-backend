@@ -1,50 +1,30 @@
 const express = require("express");
-const http = require("http");
+const bodyParser = require("body-parser");
 const cors = require("cors");
-const path = require("path");
-const { Server } = require("socket.io");
+const cookieParser = require("cookie-parser");
+const dotenv = require("dotenv");
 
 const app = express();
 const port = 8000;
-
-// CORS options
+dotenv.config();
 const corsOptions = {
   origin: "*",
 };
 
 app.use(cors(corsOptions));
+app.use(bodyParser.json());
 app.use(express.json());
+app.use(cookieParser());
 
 // Routes
 const productRoutes = require("./routes/productRoutes");
 const orderRoutes = require("./routes/orderRoutes");
-app.use(
-  "/upload-products",
-  express.static(path.join(__dirname, "uploadProduct"))
-);
+app.use("/upload-products", express.static("uploadProduct"));
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 
-// Create HTTP server and attach socket.io server
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-  },
-});
 
-// Socket.io connection handler
-io.on("connection", (socket) => {
-  console.log("a user connected");
 
-  socket.on("disconnect", () => {
-    console.log("user disconnected");
-  });
-
-  // Emit events as needed
-});
-
-// Start the server
-server.listen(port, () => {
-  console.log(`The backend is running on port number ${port}`);
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });

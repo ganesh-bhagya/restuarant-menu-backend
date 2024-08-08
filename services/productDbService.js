@@ -25,7 +25,7 @@ const getAllProducts = () => {
           ...result,
           File_Url: result.File_Path
             ? `http://localhost:8000/upload-products/${result.File_Path}`
-            : null,
+            : null
         }));
         resolve(transformedResults);
       }
@@ -44,7 +44,7 @@ const getProductByID = (productID) => {
           ...result,
           File_URL: result.File_Path
             ? `http://localhost:8000/upload-products/${result.File_Path}`
-            : null,
+            : null
         }));
         resolve(transformedResults);
       }
@@ -55,5 +55,5 @@ const getProductByID = (productID) => {
 module.exports = {
   addProduct,
   getAllProducts,
-  getProductByID,
+  getProductByID
 };
